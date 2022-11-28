@@ -46,6 +46,11 @@ app.get('/', (req, res) => {
   console.log("Redirecting...");
 
   // Pass this data to the html template to show to the user
+  return res.json({
+    me,
+    user_type,
+    sections,
+  });
   return res.render("index", {
     me,
     user_type,
@@ -65,15 +70,16 @@ app.get('/signup', (req, res) => {
     + "&redirect_uri=" + encodeURIComponent(REDIRECT_URL)
     + "&client_id=" + CLIENT_ID
     // IMPORTANT: We use this in the demo to always send the user to log in via the Clever SSO demo district. In your app, remove this!
-    + "&district_id=5adf3107d395a8000199343e";
+    + "&district_id=5b2ad81a709e300001e2cd7a";
 
   // Rendering the signup page
-  return res.render("signup", { login_url });
+  //return res.render("signup", { login_url });
+  return res.json({login_url: login_url});
 });
 
 // Receiving the login back from Clever - we want to exchange the oauth code for a token that can be used to fetch
 // information about the user, like their name and what classes they teach
-app.get('/oauth', async (req, res) => {
+app.get('/auth/login/clever/callback', async (req, res) => {
   try{
     var code = req.query.code;
     const user = await clever.runOAuthFlow(code);
@@ -92,7 +98,9 @@ app.get('/oauth', async (req, res) => {
     console.log(e)
   }
 
+  const { me, user_type, sections } = req.session;
   // Now go back to the main page
+  return res.json({me, user_type, sections});
   return res.redirect("/");
 });
 
